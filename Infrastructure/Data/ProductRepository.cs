@@ -12,7 +12,7 @@ namespace Infrastructure.Data
         {
             _context = context;
         }
-
+    
         public async Task<IReadOnlyList<ProductBrand>> GetProductBrandAsync()
         {
             return await _context.ProductBrands.ToListAsync();
