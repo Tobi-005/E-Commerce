@@ -7,6 +7,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using API.Errors;
 using System.Net;
+using API.Helpers;
 
 namespace API.Controllers
 {
@@ -29,13 +30,19 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<ProductToReturnDto>>> GetProducts()
+        public async Task<ActionResult<Pagination<ProductToReturnDto>>> GetProducts([FromQuery]ProductSpecParams productparams)
         {
-            var spec = new ProductwithBrandsandTypesSpecification();
+            var spec = new ProductwithBrandsandTypesSpecification(productparams);
+
+            var countSpec= new ProductswithCountSpecification(productparams);
+
+            var totalCount= await _productrepo.GetCountAsync(countSpec);
 
             var products = await _productrepo.ListAsync(spec);
+
+            var data = _mapper.Map<IReadOnlyList<Product>,IReadOnlyList<ProductToReturnDto>>(products);
     
-            return Ok(_mapper.Map<IReadOnlyList<Product>,IReadOnlyList<ProductToReturnDto>>(products));
+            return Ok(new Pagination<ProductToReturnDto>(productparams.PageIndex,productparams.PageSize,totalCount,data));
         }
 
         [HttpGet("{id}")]
